@@ -1,0 +1,12 @@
+{
+  "name": "@teamsync/desktop",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "echo \"Desktop starter only — scaffold Tauri when ready\"",
+    "tauri": "echo \"Not configured yet\""
+  },
+  "dependencies": {
+    "@teamsync/shared": "*"
+  }
+}

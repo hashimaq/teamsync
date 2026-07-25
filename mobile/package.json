@@ -1,0 +1,12 @@
+{
+  "name": "@teamsync/mobile",
+  "version": "0.0.1",
+  "private": true,
+  "main": "expo/AppEntry.js",
+  "scripts": {
+    "start": "echo \"Mobile starter only — run: npx create-expo-app@latest . --template blank-typescript\""
+  },
+  "dependencies": {
+    "@teamsync/shared": "*"
+  }
+}

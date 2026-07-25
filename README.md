@@ -1,36 +1,98 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TeamSync
 
-## Getting Started
+**Collaborate. Chat. Stay in Sync.**
 
-First, run the development server:
+Cross-platform monorepo for TeamSync — web app, Chrome Extension, and starters for mobile & desktop — all powered by one Supabase backend.
+
+## Packages
+
+| Path | Description |
+|------|-------------|
+| [`web/`](./web) | Full Next.js product (auth, workspaces, chat, tasks, whiteboard, notifications, realtime) |
+| [`extension/`](./extension) | **Production Chrome Extension (MV3)** — popup dashboard, tasks, badges, Chrome notifications |
+| [`shared/`](./shared) | Shared TypeScript types, constants, and utils |
+| [`mobile/`](./mobile) | Expo **starter only** (no UI yet) |
+| [`desktop/`](./desktop) | Tauri **starter only** (no UI yet) |
+| [`supabase/`](./supabase) | SQL schema & migrations |
+| [`docs/`](./docs) | Architecture notes |
+
+## Quick start
+
+### 1. Install
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Environment
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+# Web (required)
+copy .env web\.env
+# or create web/.env from web/.env.local.example
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+# Extension (required for build/runtime)
+copy extension\.env.example extension\.env
+# set VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, VITE_WEB_URL
+```
 
-## Learn More
+### 3. Run web
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run dev:web
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 4. Build & load Chrome Extension
 
-## Deploy on Vercel
+```bash
+npm run build:extension
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. Chrome → `chrome://extensions`
+2. Enable **Developer mode**
+3. **Load unpacked** → select `extension/dist`
+4. Sign in with the same TeamSync account
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Chrome Extension features
+
+- Supabase auth (session persisted in `chrome.storage`)
+- Popup: avatar, name, workspace selector, online status
+- Cards: unread messages, pending tasks, notifications
+- Quick actions: Web / Chat / Whiteboard / Tasks
+- Create task, complete task, live refresh
+- Background service worker: Realtime subscriptions
+- Chrome Notifications (even when popup is closed)
+- Extension badge for unread counts
+
+## Architecture
+
+See [`docs/architecture.md`](./docs/architecture.md).
+
+```
+teamsync/
+├── web/          Next.js App Router
+├── extension/    Chrome MV3 (Vite + React + Tailwind)
+├── shared/       @teamsync/shared
+├── mobile/       Expo starter
+├── desktop/      Tauri starter
+├── supabase/     SQL
+└── docs/
+```
+
+## Scripts
+
+| Command | Action |
+|---------|--------|
+| `npm run dev:web` | Next.js dev server |
+| `npm run build:web` | Production web build |
+| `npm run build:extension` | Build extension → `extension/dist` |
+| `npm run dev:extension` | Watch-build extension |
+
+## Notes
+
+- Do **not** commit `.env` files.
+- Mobile and desktop are intentional stubs for a later phase.
+- Existing web features were moved under `web/` without intentional feature removals.
+#teamsync

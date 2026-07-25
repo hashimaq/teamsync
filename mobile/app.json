@@ -1,0 +1,11 @@
+{
+  "name": "TeamSync Mobile",
+  "slug": "teamsync-mobile",
+  "version": "0.0.1",
+  "orientation": "portrait",
+  "platforms": ["ios", "android"],
+  "sdkVersion": "52.0.0",
+  "extra": {
+    "note": "Starter only — implement the Expo app in a later phase."
+  }
+}
