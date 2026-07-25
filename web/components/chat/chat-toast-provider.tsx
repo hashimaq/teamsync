@@ -27,6 +27,7 @@ import {
 } from "@/lib/realtime/chat-toast";
 import type { ChatMessageRealtimePayload } from "@/lib/realtime/chat";
 import { shouldShowRealtimeToast } from "@/lib/realtime/toast-dedupe";
+import { useRealtimeLifecycle } from "@/hooks/use-realtime-lifecycle";
 
 interface ChatToastContextValue {
   /** Unread chat messages per workspace (toasts suppressed while viewing that chat). */
@@ -258,99 +259,145 @@ export function ChatToastProvider({
     [clearWorkspaceUnread, router]
   );
 
+  const [reconnectKey, setReconnectKey] = useState(0);
+  const isConnectedRef = useRef(false);
+
+  useRealtimeLifecycle({
+    enabled: Boolean(userId),
+    onResume: () => {
+      if (!isConnectedRef.current) {
+        setReconnectKey((key) => key + 1);
+      }
+    },
+    pollIntervalMs: 0,
+  });
+
   useEffect(() => {
     if (!userId) return;
 
-    const supabase = createClient();
-    const channelName = `chat-toasts:${userId}`;
+    let cancelled = false;
+    let reconnectTimer: number | null = null;
 
-    const existing = supabase
-      .getChannels()
-      .find((channel) => channel.topic === `realtime:${channelName}`);
-    if (existing) {
-      void supabase.removeChannel(existing);
-    }
+    const setup = async () => {
+      const supabase = createClient();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (session?.access_token) {
+        await supabase.realtime.setAuth(session.access_token);
+      }
+      if (cancelled) return;
 
-    const handleInsert = async (
-      payload: RealtimePostgresChangesPayload<ChatMessageRealtimePayload>
-    ) => {
-      const row = payload.new as ChatMessageRealtimePayload | null;
-      if (!row?.id) return;
+      const channelName = `chat-toasts:${userId}`;
 
-      const me = userIdRef.current;
-      if (!me || row.sender_id === me) return;
-
-      // Deduplicate reconnect / double delivery
-      if (!shouldShowRealtimeToast(`chat-msg:${row.id}`, 15_000)) return;
-
-      if (
-        isViewingWorkspaceChat(
-          pathnameRef.current,
-          panelRef.current,
-          row.workspace_id
-        )
-      ) {
-        return;
+      if (channelRef.current) {
+        void supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
       }
 
-      setUnreadByWorkspace((current) => ({
-        ...current,
-        [row.workspace_id]: (current[row.workspace_id] ?? 0) + 1,
-      }));
+      const handleInsert = async (
+        payload: RealtimePostgresChangesPayload<ChatMessageRealtimePayload>
+      ) => {
+        const row = payload.new as ChatMessageRealtimePayload | null;
+        if (!row?.id) return;
 
-      const enriched = await enrichMessage(row.id, row);
+        const me = userIdRef.current;
+        if (!me || row.sender_id === me) return;
 
-      // Re-check after async enrich — user may have opened chat
-      if (
-        isViewingWorkspaceChat(
-          pathnameRef.current,
-          panelRef.current,
-          enriched.workspaceId
+        // Deduplicate reconnect / double delivery
+        if (!shouldShowRealtimeToast(`chat-msg:${row.id}`, 15_000)) return;
+
+        if (
+          isViewingWorkspaceChat(
+            pathnameRef.current,
+            panelRef.current,
+            row.workspace_id
+          )
+        ) {
+          return;
+        }
+
+        setUnreadByWorkspace((current) => ({
+          ...current,
+          [row.workspace_id]: (current[row.workspace_id] ?? 0) + 1,
+        }));
+
+        const enriched = await enrichMessage(row.id, row);
+
+        // Re-check after async enrich — user may have opened chat
+        if (
+          isViewingWorkspaceChat(
+            pathnameRef.current,
+            panelRef.current,
+            enriched.workspaceId
+          )
+        ) {
+          setUnreadByWorkspace((current) => {
+            const next = { ...current };
+            const remaining = (next[enriched.workspaceId] ?? 1) - 1;
+            if (remaining <= 0) delete next[enriched.workspaceId];
+            else next[enriched.workspaceId] = remaining;
+            return next;
+          });
+          return;
+        }
+
+        showOrUpdateGroupedToast(enriched);
+      };
+
+      const channel = supabase
+        .channel(channelName)
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "messages",
+          },
+          (payload) => {
+            void handleInsert(
+              payload as RealtimePostgresChangesPayload<ChatMessageRealtimePayload>
+            );
+          }
         )
-      ) {
-        setUnreadByWorkspace((current) => {
-          const next = { ...current };
-          const remaining = (next[enriched.workspaceId] ?? 1) - 1;
-          if (remaining <= 0) delete next[enriched.workspaceId];
-          else next[enriched.workspaceId] = remaining;
-          return next;
+        .subscribe((status) => {
+          if (cancelled) return;
+          if (status === "SUBSCRIBED") {
+            isConnectedRef.current = true;
+            return;
+          }
+          if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+            isConnectedRef.current = false;
+            if (reconnectTimer != null) window.clearTimeout(reconnectTimer);
+            reconnectTimer = window.setTimeout(() => {
+              setReconnectKey((key) => key + 1);
+            }, 1500);
+            return;
+          }
+          if (status === "CLOSED") {
+            isConnectedRef.current = false;
+          }
         });
-        return;
-      }
 
-      showOrUpdateGroupedToast(enriched);
+      channelRef.current = channel;
     };
 
-    const channel = supabase
-      .channel(channelName)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "messages",
-        },
-        (payload) => {
-          void handleInsert(
-            payload as RealtimePostgresChangesPayload<ChatMessageRealtimePayload>
-          );
-        }
-      )
-      .subscribe();
-
-    channelRef.current = channel;
+    void setup();
 
     return () => {
+      cancelled = true;
+      if (reconnectTimer != null) window.clearTimeout(reconnectTimer);
       for (const group of groupsRef.current.values()) {
         if (group.timer) window.clearTimeout(group.timer);
       }
       groupsRef.current.clear();
       if (channelRef.current) {
-        void supabase.removeChannel(channelRef.current);
+        void createClient().removeChannel(channelRef.current);
         channelRef.current = null;
       }
+      isConnectedRef.current = false;
     };
-  }, [showOrUpdateGroupedToast, userId]);
+  }, [showOrUpdateGroupedToast, userId, reconnectKey]);
 
   const totalUnread = useMemo(
     () =>

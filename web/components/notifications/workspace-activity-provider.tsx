@@ -15,6 +15,7 @@ import type {
   RealtimePostgresChangesPayload,
 } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
+import { useRealtimeLifecycle } from "@/hooks/use-realtime-lifecycle";
 
 export type WorkspaceActivityItem = {
   id: string;
@@ -50,6 +51,17 @@ async function loadInitialActivity(
   return data as WorkspaceActivityItem[];
 }
 
+async function ensureRealtimeAuth() {
+  const supabase = createClient();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  if (session?.access_token) {
+    await supabase.realtime.setAuth(session.access_token);
+  }
+  return supabase;
+}
+
 export function WorkspaceActivityRealtimeProvider({
   workspaceId,
   children,
@@ -59,8 +71,39 @@ export function WorkspaceActivityRealtimeProvider({
 }) {
   const [activity, setActivity] = useState<WorkspaceActivityItem[]>([]);
   const [isConnected, setIsConnected] = useState(false);
+  const [reconnectKey, setReconnectKey] = useState(0);
   const channelRef = useRef<RealtimeChannel | null>(null);
   const seenIdsRef = useRef(new Set<string>());
+  const isConnectedRef = useRef(false);
+  const syncInFlightRef = useRef(false);
+
+  const syncFromServer = useCallback(async () => {
+    if (!workspaceId || syncInFlightRef.current) return;
+    syncInFlightRef.current = true;
+    try {
+      const rows = await loadInitialActivity(workspaceId);
+      const previousSeen = seenIdsRef.current;
+      const brandNew = rows.filter((row) => !previousSeen.has(row.id));
+      seenIdsRef.current = new Set(rows.map((row) => row.id));
+      setActivity((current) => {
+        if (brandNew.length === 0 && current.length === rows.length) {
+          return current;
+        }
+        return rows;
+      });
+    } finally {
+      syncInFlightRef.current = false;
+    }
+  }, [workspaceId]);
+
+  const resumeRealtime = useCallback(() => {
+    void (async () => {
+      await syncFromServer();
+      if (!isConnectedRef.current) {
+        setReconnectKey((key) => key + 1);
+      }
+    })();
+  }, [syncFromServer]);
 
   useEffect(() => {
     let cancelled = false;
@@ -74,63 +117,102 @@ export function WorkspaceActivityRealtimeProvider({
     };
   }, [workspaceId]);
 
+  useRealtimeLifecycle({
+    enabled: Boolean(workspaceId),
+    onResume: resumeRealtime,
+    pollIntervalMs: 12_000,
+  });
+
   useEffect(() => {
     if (!workspaceId) return;
 
-    const supabase = createClient();
-    const channelName = `workspace-activity:${workspaceId}`;
+    let cancelled = false;
+    let reconnectTimer: number | null = null;
 
-    if (channelRef.current) {
-      void supabase.removeChannel(channelRef.current);
-      channelRef.current = null;
-    }
+    const setup = async () => {
+      const supabase = await ensureRealtimeAuth();
+      if (cancelled) return;
 
-    const channel = supabase
-      .channel(channelName)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "workspace_activity",
-          filter: `workspace_id=eq.${workspaceId}`,
-        },
-        (payload: RealtimePostgresChangesPayload<WorkspaceActivityItem>) => {
-          const row = payload.new as WorkspaceActivityItem | null;
-          if (!row?.id) return;
-          if (seenIdsRef.current.has(row.id)) return;
-          seenIdsRef.current.add(row.id);
-          setActivity((current) => [row, ...current].slice(0, 40));
-        }
-      )
-      .subscribe((status) => {
-        setIsConnected(status === "SUBSCRIBED");
-      });
-
-    channelRef.current = channel;
-
-    return () => {
       if (channelRef.current) {
         void supabase.removeChannel(channelRef.current);
         channelRef.current = null;
       }
+
+      const channel = supabase
+        .channel(`workspace-activity:${workspaceId}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "workspace_activity",
+            filter: `workspace_id=eq.${workspaceId}`,
+          },
+          (payload: RealtimePostgresChangesPayload<WorkspaceActivityItem>) => {
+            const row = payload.new as WorkspaceActivityItem | null;
+            if (!row?.id) return;
+            if (seenIdsRef.current.has(row.id)) return;
+            seenIdsRef.current.add(row.id);
+            setActivity((current) => [row, ...current].slice(0, 40));
+          }
+        )
+        .subscribe((status) => {
+          if (cancelled) return;
+          if (status === "SUBSCRIBED") {
+            isConnectedRef.current = true;
+            setIsConnected(true);
+            void syncFromServer();
+            return;
+          }
+          if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+            isConnectedRef.current = false;
+            setIsConnected(false);
+            if (reconnectTimer != null) window.clearTimeout(reconnectTimer);
+            reconnectTimer = window.setTimeout(() => {
+              setReconnectKey((key) => key + 1);
+            }, 1500);
+            return;
+          }
+          if (status === "CLOSED") {
+            isConnectedRef.current = false;
+            setIsConnected(false);
+          }
+        });
+
+      channelRef.current = channel;
+    };
+
+    void setup();
+
+    return () => {
+      cancelled = true;
+      if (reconnectTimer != null) window.clearTimeout(reconnectTimer);
+      const supabase = createClient();
+      if (channelRef.current) {
+        void supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+      isConnectedRef.current = false;
       setIsConnected(false);
     };
-  }, [workspaceId]);
+  }, [workspaceId, reconnectKey, syncFromServer]);
 
-  const pushLocalActivity = useCallback((message: string) => {
-    const entry: WorkspaceActivityItem = {
-      id: `local-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-      workspace_id: workspaceId,
-      actor_id: null,
-      event_type: "local",
-      message,
-      metadata: {},
-      created_at: new Date().toISOString(),
-    };
-    seenIdsRef.current.add(entry.id);
-    setActivity((current) => [entry, ...current].slice(0, 40));
-  }, [workspaceId]);
+  const pushLocalActivity = useCallback(
+    (message: string) => {
+      const entry: WorkspaceActivityItem = {
+        id: `local-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        workspace_id: workspaceId,
+        actor_id: null,
+        event_type: "local",
+        message,
+        metadata: {},
+        created_at: new Date().toISOString(),
+      };
+      seenIdsRef.current.add(entry.id);
+      setActivity((current) => [entry, ...current].slice(0, 40));
+    },
+    [workspaceId]
+  );
 
   const value = useMemo(
     () => ({ activity, isConnected, pushLocalActivity }),
