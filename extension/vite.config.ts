@@ -5,7 +5,7 @@ import { resolve } from "node:path";
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
-  const webUrl = env.VITE_WEB_URL || "http://localhost:3000";
+  const webUrl = env.VITE_WEB_URL || "https://teamsync-chi.vercel.app";
 
   return {
     plugins: [react(), tailwindcss()],

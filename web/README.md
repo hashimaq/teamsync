@@ -12,5 +12,5 @@ Ensure `web/.env` exists with:
 ```
 NEXT_PUBLIC_SUPABASE_URL=...
 NEXT_PUBLIC_SUPABASE_ANON_KEY=...
-NEXT_PUBLIC_SITE_URL=http://localhost:3000
+NEXT_PUBLIC_SITE_URL=https://teamsync-chi.vercel.app
 ```

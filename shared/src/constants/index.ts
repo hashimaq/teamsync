@@ -3,7 +3,7 @@
 export const APP_NAME = "TeamSync";
 export const APP_TAGLINE = "Collaborate. Chat. Stay in Sync.";
 
-export const WEB_DEFAULT_URL = "http://localhost:3000";
+export const WEB_DEFAULT_URL = "https://teamsync-chi.vercel.app";
 
 export const STORAGE_KEYS = {
   session: "teamsync.session",

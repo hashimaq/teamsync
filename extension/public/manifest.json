@@ -29,6 +29,7 @@
   ],
   "host_permissions": [
     "http://localhost:3000/*",
+    "https://teamsync-chi.vercel.app/*",
     "https://*.supabase.co/*"
   ],
   "content_security_policy": {

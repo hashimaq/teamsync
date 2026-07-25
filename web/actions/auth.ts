@@ -82,7 +82,7 @@ export async function forgotPassword(formData: FormData): Promise<ActionResult> 
   }
 
   const supabase = await createClient();
-  const origin = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+  const origin = process.env.NEXT_PUBLIC_SITE_URL ?? "https://teamsync-chi.vercel.app";
 
   const { error } = await supabase.auth.resetPasswordForEmail(parsed.data.email, {
     redirectTo: `${origin}/login`,

@@ -4,7 +4,8 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string | undefined;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
 
 export const WEB_URL =
-  (import.meta.env.VITE_WEB_URL as string | undefined) || "http://localhost:3000";
+  (import.meta.env.VITE_WEB_URL as string | undefined) ||
+  "https://teamsync-chi.vercel.app";
 
 function assertEnv(): { url: string; key: string } {
   if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
