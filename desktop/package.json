@@ -1,12 +1,25 @@
 {
   "name": "@teamsync/desktop",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "private": true,
+  "description": "TeamSync native desktop shell (Tauri 2) — reuses the Next.js web app",
+  "type": "module",
   "scripts": {
-    "dev": "echo \"Desktop starter only — scaffold Tauri when ready\"",
-    "tauri": "echo \"Not configured yet\""
+    "dev": "node ./scripts/run-tauri.mjs dev",
+    "build": "node ./scripts/run-tauri.mjs build",
+    "tauri": "node ./scripts/run-tauri.mjs",
+    "tauri:dev": "node ./scripts/run-tauri.mjs dev",
+    "tauri:build": "node ./scripts/run-tauri.mjs build",
+    "icon": "tauri icon ./app-icon.png"
   },
   "dependencies": {
-    "@teamsync/shared": "*"
+    "@tauri-apps/api": "^2.5.0",
+    "@tauri-apps/plugin-clipboard-manager": "^2.2.2",
+    "@tauri-apps/plugin-notification": "^2.2.2",
+    "@tauri-apps/plugin-os": "^2.2.1",
+    "@tauri-apps/plugin-shell": "^2.2.1"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.5.0"
   }
 }

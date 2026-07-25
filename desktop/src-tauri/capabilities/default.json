@@ -1,0 +1,20 @@
+{
+  "identifier": "default",
+  "description": "Default TeamSync desktop capability — least privilege for a web-shell app",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "core:window:allow-set-title",
+    "core:window:allow-set-focus",
+    "clipboard-manager:allow-read-text",
+    "clipboard-manager:allow-write-text",
+    "notification:default",
+    "os:default",
+    "shell:allow-open",
+    "window-state:default",
+    "global-shortcut:allow-is-registered",
+    "global-shortcut:allow-register",
+    "global-shortcut:allow-unregister",
+    "global-shortcut:allow-unregister-all"
+  ]
+}

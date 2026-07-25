@@ -1,6 +1,7 @@
 export type TaskPriority = "low" | "medium" | "high";
 export type TaskStatus = "todo" | "in_progress" | "done";
 export type WorkspaceRole = "owner" | "admin" | "member";
+export type InvitationStatus = "pending" | "accepted" | "declined" | "cancelled";
 
 export interface Profile {
   id: string;
@@ -23,6 +24,48 @@ export interface WorkspaceWithMeta extends Workspace {
   member_count?: number;
 }
 
+export interface WorkspaceMember {
+  id: string;
+  workspace_id: string;
+  user_id: string;
+  role: WorkspaceRole;
+  created_at: string;
+}
+
+export interface WorkspaceMemberWithProfile extends WorkspaceMember {
+  profile: {
+    id: string;
+    full_name: string | null;
+    avatar_url: string | null;
+    email: string | null;
+  } | null;
+}
+
+export interface WorkspaceInvitation {
+  id: string;
+  workspace_id: string;
+  inviter_id: string;
+  invitee_id: string;
+  invitee_email: string;
+  status: InvitationStatus;
+  created_at: string;
+  responded_at: string | null;
+}
+
+export interface WorkspaceInvitationWithDetails extends WorkspaceInvitation {
+  workspace: {
+    id: string;
+    name: string;
+    description: string | null;
+  } | null;
+  inviter: {
+    id: string;
+    full_name: string | null;
+    avatar_url: string | null;
+    email: string | null;
+  } | null;
+}
+
 export interface Task {
   id: string;
   workspace_id: string;
@@ -36,6 +79,25 @@ export interface Task {
   updated_by?: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface ChatMessage {
+  id: string;
+  workspace_id: string;
+  sender_id: string;
+  message: string;
+  created_at: string;
+}
+
+export interface ChatMessageWithSender extends ChatMessage {
+  sender: {
+    id: string;
+    full_name: string | null;
+    avatar_url: string | null;
+  } | null;
+  pending?: boolean;
+  failed?: boolean;
+  client_id?: string;
 }
 
 export type NotificationType =
@@ -63,12 +125,19 @@ export interface Notification {
   metadata: Record<string, unknown>;
   is_read: boolean;
   created_at: string;
+  sender?: {
+    id: string;
+    full_name: string | null;
+    avatar_url: string | null;
+  } | null;
 }
 
-export interface ChatMessage {
+export interface WorkspaceActivityItem {
   id: string;
   workspace_id: string;
-  sender_id: string;
+  actor_id: string | null;
+  event_type: string;
   message: string;
+  metadata: Record<string, unknown>;
   created_at: string;
 }

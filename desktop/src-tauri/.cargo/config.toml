@@ -1,0 +1,5 @@
+# Windows: use the MSVC target toolchain (set as rustup default).
+# Do NOT use windows-gnu for Tauri — MinGW ld fails with
+# "export ordinal too large" on large dependency graphs.
+#
+# Host default is controlled by: rustup default stable-x86_64-pc-windows-msvc
