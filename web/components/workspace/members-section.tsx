@@ -394,8 +394,8 @@ export function WorkspaceMembersSection({
   }, [members, search]);
 
   return (
-    <section className="flex h-full min-h-0 flex-col">
-      <div className="flex flex-col gap-3 border-b border-border/80 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+    <section className="flex h-full min-h-0 flex-col overflow-hidden bg-background">
+      <div className="shrink-0 flex flex-col gap-3 border-b border-border/80 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
         <div>
           <h2 className="font-display text-base font-semibold">Members</h2>
           <p className="mt-0.5 text-xs text-muted-foreground">
@@ -408,7 +408,7 @@ export function WorkspaceMembersSection({
         {isOwner ? <InviteMemberButton workspaceId={workspaceId} /> : null}
       </div>
 
-      <div className="border-b border-border/70 px-4 py-3 sm:px-6">
+      <div className="shrink-0 border-b border-border/70 px-4 py-3 sm:px-6">
         <div className="relative">
           <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
           <Input

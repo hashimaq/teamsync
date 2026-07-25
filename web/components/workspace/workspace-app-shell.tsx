@@ -141,7 +141,11 @@ function WorkspaceMainPanels({
   return (
     <div className="relative min-h-0 flex-1 overflow-hidden pb-[calc(3.5rem+env(safe-area-inset-bottom,0px))] md:pb-0">
       {clientReady || showMembers ? (
-        <div className={showMembers ? "h-full min-h-0" : "hidden"}>
+        <div
+          className={
+            showMembers ? "flex h-full min-h-0 flex-col overflow-hidden" : "hidden"
+          }
+        >
           <Suspense fallback={<WorkspaceMembersSkeleton />}>
             <WorkspaceMembersRealtime
               workspaceId={workspace.id}

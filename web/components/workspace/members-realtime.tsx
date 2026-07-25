@@ -54,17 +54,19 @@ export function WorkspaceMembersRealtime({
   }, [members.length, setMemberCount]);
 
   return (
-    <div className="space-y-2">
-      <WorkspaceMembersSection
-        workspaceId={workspaceId}
-        members={members}
-        pendingInvitations={liveInvitations}
-        isOwner={isOwner}
-        onlineUserIds={onlineUserIds}
-        onlineCount={onlineCount}
-      />
+    <div className="flex h-full min-h-0 flex-col overflow-hidden">
+      <div className="min-h-0 flex-1 overflow-hidden">
+        <WorkspaceMembersSection
+          workspaceId={workspaceId}
+          members={members}
+          pendingInvitations={liveInvitations}
+          isOwner={isOwner}
+          onlineUserIds={onlineUserIds}
+          onlineCount={onlineCount}
+        />
+      </div>
       {error || presenceError ? (
-        <p className="text-xs text-muted-foreground" role="status">
+        <p className="shrink-0 px-4 pb-2 text-xs text-muted-foreground" role="status">
           {error ?? presenceError}
         </p>
       ) : null}
