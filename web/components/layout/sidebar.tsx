@@ -106,7 +106,9 @@ export function Sidebar({ userName, userId = null }: SidebarProps) {
       </div>
 
       {open ? (
-        <div className="fixed inset-0 z-30 bg-background pt-14 lg:hidden">{content}</div>
+        <div className="fixed inset-0 z-30 overflow-y-auto overscroll-y-contain bg-background pt-14 [-webkit-overflow-scrolling:touch] lg:hidden">
+          {content}
+        </div>
       ) : null}
     </>
   );

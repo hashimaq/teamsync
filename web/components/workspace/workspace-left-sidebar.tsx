@@ -249,8 +249,8 @@ export function WorkspaceLeftSidebar({
       </div>
 
       {mobileOpen ? (
-        <div className="fixed inset-0 z-40 bg-background/95 backdrop-blur-md md:hidden">
-          <div className="flex h-full flex-col pt-12">{content}</div>
+        <div className="fixed inset-0 z-40 overflow-y-auto overscroll-y-contain bg-background/95 backdrop-blur-md [-webkit-overflow-scrolling:touch] md:hidden">
+          <div className="flex min-h-full flex-col pt-12">{content}</div>
         </div>
       ) : null}
     </>

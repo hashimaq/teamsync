@@ -282,7 +282,7 @@ export function WorkspaceTaskBoard({
         </div>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain p-4 sm:p-6 [-webkit-overflow-scrolling:touch]">
         <div className="mx-auto max-w-7xl">
           {showEmpty ? (
             <div className="rounded-xl border border-dashed border-border px-6 py-14 text-center">

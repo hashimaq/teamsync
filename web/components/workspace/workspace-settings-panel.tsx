@@ -30,7 +30,7 @@ export function WorkspaceSettingsPanel({
         </p>
       </div>
 
-      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4 sm:p-6">
+      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-y-contain p-4 sm:p-6 [-webkit-overflow-scrolling:touch]">
         <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
           <p className="text-sm font-semibold">Workspace details</p>
           <p className="mt-1 text-xs text-muted-foreground">

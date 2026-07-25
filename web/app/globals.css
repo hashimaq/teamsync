@@ -160,8 +160,19 @@
     @apply border-border;
   }
 
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  html,
+  body {
+    max-width: 100%;
+  }
+
   body {
     @apply bg-background text-foreground font-sans;
+    /* Prefer native page scroll on marketing/auth; workspace locks its own shell. */
+    overscroll-behavior-y: none;
   }
 
   .font-display {

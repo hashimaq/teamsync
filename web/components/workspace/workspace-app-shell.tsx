@@ -139,9 +139,9 @@ function WorkspaceMainPanels({
   const showChat = panel === "chat";
 
   return (
-    <div className="relative min-h-0 flex-1 overflow-hidden pb-14 md:pb-0">
+    <div className="relative min-h-0 flex-1 overflow-hidden pb-[calc(3.5rem+env(safe-area-inset-bottom,0px))] md:pb-0">
       {clientReady || showMembers ? (
-        <div className={showMembers ? "h-full" : "hidden"}>
+        <div className={showMembers ? "h-full min-h-0" : "hidden"}>
           <Suspense fallback={<WorkspaceMembersSkeleton />}>
             <WorkspaceMembersRealtime
               workspaceId={workspace.id}
@@ -155,7 +155,7 @@ function WorkspaceMainPanels({
       ) : null}
 
       {clientReady || showChat ? (
-        <div className={showChat ? "h-full" : "hidden"}>
+        <div className={showChat ? "h-full min-h-0" : "hidden"}>
           <WorkspaceChat
             workspaceId={workspace.id}
             currentUserId={currentUserId}
@@ -167,7 +167,7 @@ function WorkspaceMainPanels({
       ) : null}
 
       {clientReady || showTasks ? (
-        <div className={showTasks ? "h-full" : "hidden"}>
+        <div className={showTasks ? "h-full min-h-0" : "hidden"}>
           <WorkspaceTaskBoard
             workspaceId={workspace.id}
             initialTasks={tasks}
@@ -178,25 +178,33 @@ function WorkspaceMainPanels({
       ) : null}
 
       {panel === "whiteboard" ? (
-        <WorkspaceWhiteboard
-          workspaceId={workspace.id}
-          workspaceName={workspace.name}
-          userId={currentUserId}
-          userName={currentUserName}
-          userAvatar={currentUserAvatar}
-        />
+        <div className="h-full min-h-0">
+          <WorkspaceWhiteboard
+            workspaceId={workspace.id}
+            workspaceName={workspace.name}
+            userId={currentUserId}
+            userName={currentUserName}
+            userAvatar={currentUserAvatar}
+          />
+        </div>
       ) : null}
 
-      {panel === "notifications" ? <WorkspaceNotificationsPanel /> : null}
+      {panel === "notifications" ? (
+        <div className="h-full min-h-0">
+          <WorkspaceNotificationsPanel />
+        </div>
+      ) : null}
 
       {panel === "settings" ? (
-        <WorkspaceSettingsPanel
-          workspace={workspace}
-          isOwner={isOwner}
-          canLeave={canLeave}
-          userId={currentUserId}
-          displayName={currentUserName ?? "Someone"}
-        />
+        <div className="h-full min-h-0">
+          <WorkspaceSettingsPanel
+            workspace={workspace}
+            isOwner={isOwner}
+            canLeave={canLeave}
+            userId={currentUserId}
+            displayName={currentUserName ?? "Someone"}
+          />
+        </div>
       ) : null}
     </div>
   );
@@ -217,7 +225,7 @@ function WorkspaceShellInner(props: WorkspaceAppShellProps) {
   const { unreadCount } = useNotifications();
 
   return (
-    <div className="flex h-dvh min-h-0 flex-col md:flex-row">
+    <div className="flex h-full min-h-0 flex-col md:flex-row">
       <WorkspaceLeftSidebar
         workspaceId={workspace.id}
         workspaceName={workspace.name}
@@ -227,7 +235,7 @@ function WorkspaceShellInner(props: WorkspaceAppShellProps) {
         unreadCount={unreadCount}
       />
 
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
         <WorkspaceTopHeader
           workspaceId={workspace.id}
           workspaceName={workspace.name}
@@ -271,19 +279,21 @@ export function WorkspaceAppShell(props: WorkspaceAppShellProps) {
       avatarUrl={currentUserAvatar}
       initialMemberCount={members.length}
     >
-      <Suspense
-        fallback={
-          <div className="flex h-dvh items-center justify-center text-sm text-muted-foreground">
-            Loading workspace…
-          </div>
-        }
-      >
-        <WorkspaceShellProvider defaultPanel="chat">
-          <WorkspaceActivityRealtimeProvider workspaceId={workspace.id}>
-            <WorkspaceShellInner {...props} />
-          </WorkspaceActivityRealtimeProvider>
-        </WorkspaceShellProvider>
-      </Suspense>
+      <div className="flex h-full min-h-0 flex-col">
+        <Suspense
+          fallback={
+            <div className="flex h-full min-h-0 items-center justify-center text-sm text-muted-foreground">
+              Loading workspace…
+            </div>
+          }
+        >
+          <WorkspaceShellProvider defaultPanel="chat">
+            <WorkspaceActivityRealtimeProvider workspaceId={workspace.id}>
+              <WorkspaceShellInner {...props} />
+            </WorkspaceActivityRealtimeProvider>
+          </WorkspaceShellProvider>
+        </Suspense>
+      </div>
     </WorkspacePresenceProvider>
   );
 }

@@ -258,7 +258,7 @@ export function WorkspaceChat({
         </div>
       </div>
 
-      <div className="min-h-0 flex-1 space-y-1 overflow-y-auto px-3 py-4 sm:px-5">
+      <div className="min-h-0 flex-1 space-y-1 overflow-y-auto overscroll-y-contain px-3 py-4 sm:px-5 [-webkit-overflow-scrolling:touch]">
         {messages.length === 0 ? (
           <div className="flex h-full min-h-[240px] flex-col items-center justify-center px-4 text-center">
             <div className="rounded-2xl border border-dashed border-border bg-card/70 p-8 shadow-sm">

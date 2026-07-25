@@ -420,7 +420,7 @@ export function WorkspaceMembersSection({
         </div>
       </div>
 
-      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4 sm:p-6">
+      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-y-contain p-4 sm:p-6 [-webkit-overflow-scrolling:touch]">
         {pendingInvitations.length > 0 ? (
           <div className="grid gap-3 sm:grid-cols-2">
             {pendingInvitations.map((invitation) => (

@@ -74,7 +74,7 @@ export function WorkspaceRightSidebar({
         </div>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto p-4">
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain p-4 [-webkit-overflow-scrolling:touch]">
         <div className="mb-3 flex items-center justify-between">
           <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
             Online · {onlineMembers.length}

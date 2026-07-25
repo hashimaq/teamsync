@@ -26,16 +26,19 @@ function ChromeShell({
   const isWorkspaceRoute = pathname.startsWith("/workspace/");
 
   if (isWorkspaceRoute) {
+    // Single viewport lock — children must use h-full (not another h-dvh).
     return (
-      <div className="flex h-dvh min-h-0 flex-col overflow-hidden bg-background">
+      <div className="flex h-dvh max-h-dvh min-h-0 flex-col overflow-hidden bg-background">
         <NavigationProgress />
-        <div className="min-h-0 flex-1">{children}</div>
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          {children}
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex min-h-dvh bg-background">
       <NavigationProgress />
       <Sidebar userName={userName} userId={userId} />
       <div className="flex min-w-0 flex-1 flex-col">

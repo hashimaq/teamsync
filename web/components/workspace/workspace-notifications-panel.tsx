@@ -102,7 +102,7 @@ export function WorkspaceNotificationsPanel() {
         ) : null}
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain p-4 sm:p-6 [-webkit-overflow-scrolling:touch]">
         <div className="mx-auto max-w-2xl">
           {isLoading ? (
             <p className="py-16 text-center text-sm text-muted-foreground">Loading…</p>

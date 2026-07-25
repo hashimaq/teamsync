@@ -47,7 +47,7 @@ function HeroStage() {
 
 export function HeroSection() {
   return (
-    <section className="relative min-h-[100svh] overflow-hidden">
+    <section className="relative min-h-[100svh] overflow-x-hidden">
       <div className="absolute inset-0 bg-gradient-to-b from-[#eef5ff] via-[#fbfcfe] to-[#fff5f7] dark:from-slate-950 dark:via-slate-950 dark:to-slate-900" />
       <div className="absolute -left-32 top-0 h-[28rem] w-[28rem] rounded-full bg-sky-300/30 blur-3xl dark:bg-sky-500/10" />
       <div className="absolute -right-24 top-24 h-[26rem] w-[26rem] rounded-full bg-rose-300/25 blur-3xl dark:bg-rose-500/10" />

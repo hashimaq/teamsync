@@ -283,7 +283,7 @@ export function Whiteboard({
     <section
       ref={rootRef}
       className={cn(
-        "flex h-full min-h-0 flex-col bg-background",
+        "flex h-full min-h-0 flex-col overflow-hidden bg-background",
         isFullscreen && "p-4"
       )}
     >
